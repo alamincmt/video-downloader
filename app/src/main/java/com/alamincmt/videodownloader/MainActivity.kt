@@ -54,14 +54,6 @@ class MainActivity : AppCompatActivity() {
             downloadServiceConnection,
             Context.BIND_AUTO_CREATE
         )
-
-
-        lifecycleScope.launch {
-            var prevValue = null
-            flow.collect { newValue ->
-                prevValue = newValue
-            }
-        }
     }
 
     fun startDownload(view: View) {
