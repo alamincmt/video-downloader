@@ -42,11 +42,15 @@ class DownloadViewModel : ViewModel() {
         }
     }
 
+    fun getDownloadProgress(){
+
+    }
+
     fun onIdleRequested() {
         state.value = FileDownloadState.Idle
     }
 
-    private sealed class DownloadState {
+    sealed class DownloadState {
         data class Downloading(val progress: Int) : DownloadState()
         object Finished : DownloadState()
         data class Failed(val error: Throwable? = null) : DownloadState()

@@ -25,6 +25,13 @@
         <service android:name=".services.DownloadService"
             android:exported="false" />
 
+        <receiver android:name=".receiver.DownloadReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="DownloadBroadcaster" />
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

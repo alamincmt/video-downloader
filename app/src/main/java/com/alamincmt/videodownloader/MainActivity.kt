@@ -1,10 +1,7 @@
 package com.alamincmt.videodownloader
 
 import android.Manifest
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -12,19 +9,23 @@ import android.os.IBinder
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import com.alamincmt.videodownloader.model.FileDownloadState
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.alamincmt.videodownloader.receiver.DownloadReceiver
 import com.alamincmt.videodownloader.services.DownloadService
 import com.alamincmt.videodownloader.utils.Utils
 import com.alamincmt.videodownloader.utils.Variables.isDownloadRunning
 import com.alamincmt.videodownloader.viewmodel.DownloadViewModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
+
+    var pbDownloadProgress: ProgressBar? = null
+    var tvDownloadPercentage: TextView? = null
 
     private lateinit var downloadService: DownloadService
     private var isDownloadServiceBound: Boolean = false
@@ -40,47 +41,47 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private val POST_NOTIFICATION_PERM_ID: Int = 200
+    lateinit var dlReceiver : DownloadReceiver
+
+    companion object {
+        var inst: MainActivity? = null
+        fun getInstance(): MainActivity? {
+            return inst
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        inst = this
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), POST_NOTIFICATION_PERM_ID)
         }
 
-        startService(Intent(this, DownloadService::class.java))
-        bindService(
-            Intent(this, DownloadService::class.java),
-            downloadServiceConnection,
-            Context.BIND_AUTO_CREATE
-        )
+        pbDownloadProgress = findViewById(R.id.pbDownload)
+        tvDownloadPercentage = findViewById(R.id.tvDownloadPercentage)
+
+        dlReceiver = DownloadReceiver()
+        LocalBroadcastManager.getInstance(applicationContext).registerReceiver(dlReceiver, IntentFilter("DownloadBroadcaster"))
+    }
+
+    fun updateDownloadProgress(progress: Int) {
+        this@MainActivity.runOnUiThread {
+            pbDownloadProgress?.progress = progress
+            tvDownloadPercentage?.text = "Downloaded : $progress%"
+        }
     }
 
     fun startDownload(view: View) {
         if(Utils.isInternetAvailable(applicationContext)){
 
-            val viewModel = ViewModelProvider(this)[DownloadViewModel::class.java]
-            viewModel.downloadFile()
-            lifecycleScope.launchWhenStarted { viewModel.state.collect{
-                when(it) {
-                    is FileDownloadState.Idle -> {
-                        print("Idle Model")
-                    }
-                    is FileDownloadState.Downloading -> {
-                        print("Downloading file: " + it.progress)
-                        findViewById<ProgressBar>(R.id.pbDownload).progress = it.progress
-                        findViewById<TextView>(R.id.tvDownloadPercentage).text = "Downloaded : ${it.progress}%"
-                    }
-                    is FileDownloadState.Downloaded -> {
-                        print("File Downloaded")
-                        findViewById<TextView>(R.id.tvDownloadPercentage).text = "Download Completed!"
-                    }
-                    else -> {
-
-                    }
-                }
-            } }
+            startService(Intent(this, DownloadService::class.java).putExtra("startDownload", "StartDownload"))
+            bindService(
+                Intent(this, DownloadService::class.java),
+                downloadServiceConnection,
+                Context.BIND_AUTO_CREATE
+            )
         }else{
             Utils.showToastLong(applicationContext, "Please connect to the internet and try again.")
         }
@@ -90,6 +91,7 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
 
         if(!isDownloadRunning){
+            LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(dlReceiver)
             stopService(Intent(this, DownloadService::class.java))
             if (isDownloadServiceBound) {
                 unbindService(downloadServiceConnection)
