@@ -69,8 +69,9 @@ class MainActivity : AppCompatActivity() {
 
     fun startDownload(view: View) {
         if(Utils.isInternetAvailable(applicationContext)){
-
-            startService(Intent(this, DownloadService::class.java).putExtra("startDownload", "StartDownload"))
+            startService(Intent(this, DownloadService::class.java)
+                .putExtra("startDownload", "StartDownload")
+                .putExtra("needToShowNotification", false))
             bindService(
                 Intent(this, DownloadService::class.java),
                 downloadServiceConnection,
@@ -90,6 +91,15 @@ class MainActivity : AppCompatActivity() {
             if (isDownloadServiceBound) {
                 unbindService(downloadServiceConnection)
             }
+        }else{
+            startService(Intent(this, DownloadService::class.java)
+                .putExtra("startDownload", "DownloadRunning")
+                .putExtra("needToShowNotification", true))
+            bindService(
+                Intent(this, DownloadService::class.java),
+                downloadServiceConnection,
+                Context.BIND_AUTO_CREATE
+            )
         }
     }
 

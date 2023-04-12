@@ -34,6 +34,7 @@ class DownloadService : Service() {
     private var id: Int = UUID.randomUUID().hashCode()
     private var CHANNEL_ID: String = "com.alamincmt.videodownloader.ANDROID_CHANNEL"
     private val binder: Binder = DownloadBinder()
+    private var needToShowNotification: Boolean? = false
 
     override fun onBind(p0: Intent?): IBinder = binder
 
@@ -50,6 +51,7 @@ class DownloadService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         println("Service onStartCommand Called")
 
+        needToShowNotification = intent?.extras?.getBoolean("needToShowNotification", false)
         if(intent?.extras?.getString("startDownload").equals("StartDownload")){
             downloadFile()
             createChannel(applicationContext, channelName = "Video Downloader Channel", channelDescription = "This is description", importanceLevel = NotificationCompat.PRIORITY_HIGH)
@@ -163,6 +165,9 @@ class DownloadService : Service() {
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setProgress(100, progress, false)
             .build()
-        startForeground(id, notification)
+
+        if(needToShowNotification!!){
+            startForeground(id, notification)
+        }
     }
 }
