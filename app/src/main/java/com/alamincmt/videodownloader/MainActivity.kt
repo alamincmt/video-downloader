@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import com.alamincmt.videodownloader.model.FileDownloadState
 import com.alamincmt.videodownloader.services.DownloadService
 import com.alamincmt.videodownloader.utils.Utils
+import com.alamincmt.videodownloader.utils.Variables.isDownloadRunning
 import com.alamincmt.videodownloader.viewmodel.DownloadViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
@@ -87,6 +88,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
+
+        if(!isDownloadRunning){
+            stopService(Intent(this, DownloadService::class.java))
+            if (isDownloadServiceBound) {
+                unbindService(downloadServiceConnection)
+            }
+        }
     }
 
     override fun onDestroy() {

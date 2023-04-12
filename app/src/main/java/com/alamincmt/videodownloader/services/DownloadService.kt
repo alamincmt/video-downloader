@@ -2,15 +2,19 @@ package com.alamincmt.videodownloader.services
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.PendingIntent.CanceledException
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import com.alamincmt.videodownloader.MainActivity
 import com.alamincmt.videodownloader.R
 import com.alamincmt.videodownloader.utils.Variables
 import java.util.*
+
 
 class DownloadService : Service() {
 
@@ -34,7 +38,7 @@ class DownloadService : Service() {
         println("Service onStartCommand Called")
 
         createChannel(applicationContext, channelName = "Video Downloader Channel", channelDescription = "This is description", importanceLevel = NotificationCompat.PRIORITY_HIGH)
-        createNotification(applicationContext, "Video file is download", "Download Progress: ${Variables.DOWNLOAD_PERCENTAGE}%")
+        createNotification(applicationContext, "Video file downloading...", "Download Progress: ${Variables.DOWNLOAD_PERCENTAGE}%")
 
         return START_STICKY
     }
@@ -66,6 +70,11 @@ class DownloadService : Service() {
 
     fun createNotification(context: Context, title: String, content: String) {
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+
+        val intent = Intent(this, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, 1, intent, PendingIntent.FLAG_IMMUTABLE)
+        builder.setContentIntent(pendingIntent)
+
         val notification = builder.setContentTitle(title)
             .setContentText(content)
             .setSmallIcon(R.drawable.ic_launcher_foreground)

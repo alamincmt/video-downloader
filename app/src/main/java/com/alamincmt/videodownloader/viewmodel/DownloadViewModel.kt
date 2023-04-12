@@ -7,6 +7,7 @@ import com.alamincmt.videodownloader.R
 import com.alamincmt.videodownloader.data.api.FileDownloadApi
 import com.alamincmt.videodownloader.data.network.createRetrofitApi
 import com.alamincmt.videodownloader.model.FileDownloadState
+import com.alamincmt.videodownloader.utils.Variables
 import com.alamincmt.videodownloader.utils.Variables.DOWNLOAD_PERCENTAGE
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -72,13 +73,16 @@ class DownloadViewModel : ViewModel() {
                             bytes = inputStream.read(buffer)
                             emit(DownloadState.Downloading(((progressBytes * 100) / totalBytes).toInt()))
                             DOWNLOAD_PERCENTAGE = DownloadState.Downloading(((progressBytes * 100) / totalBytes).toInt()).progress
+                            Variables.isDownloadRunning = true
                             println("dl----progress: ${DownloadState.Downloading(((progressBytes * 100) / totalBytes).toInt())}")
                         }
                     }
                 }
                 emit(DownloadState.Finished)
+                Variables.isDownloadRunning = false
             } catch (e: Exception) {
                 emit(DownloadState.Failed(e))
+                Variables.isDownloadRunning = false
             }
         }
             .flowOn(Dispatchers.IO)
