@@ -9,18 +9,12 @@ import android.os.IBinder
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.alamincmt.videodownloader.receiver.DownloadReceiver
 import com.alamincmt.videodownloader.services.DownloadService
 import com.alamincmt.videodownloader.utils.Utils
 import com.alamincmt.videodownloader.utils.Variables.isDownloadRunning
-import com.alamincmt.videodownloader.viewmodel.DownloadViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
